@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCHGrid AI — Enterprise Architecture Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0C0C0F;
+  --surface: #131318;
+  --card: #18181F;
+  --card-hover: #1E1E28;
+  --border: rgba(255,255,255,0.06);
+  --border-md: rgba(255,255,255,0.1);
+  --border-hi: rgba(255,255,255,0.16);
+  --text: #EEEDF0;
+  --muted: #6B6A78;
+  --subtle: #3A3945;
+
+  /* Accent palette */
+  --amber: #F5A623;
+  --amber-dim: rgba(245,166,35,0.1);
+  --amber-glow: rgba(245,166,35,0.06);
+  --cyan: #22D3EE;
+  --cyan-dim: rgba(34,211,238,0.1);
+  --violet: #A78BFA;
+  --violet-dim: rgba(167,139,250,0.1);
+  --emerald: #34D399;
+  --emerald-dim: rgba(52,211,153,0.1);
+  --rose: #FB7185;
+  --rose-dim: rgba(251,113,133,0.1);
+  --sky: #38BDF8;
+  --sky-dim: rgba(56,189,248,0.1);
+
+  --radius: 14px;
+  --radius-sm: 8px;
+  --radius-xs: 6px;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 4px; }
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999;
+}
+
+/* ─── VIEWS ─── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ══════════════════════════════════
+   HOME / AGENT LAUNCHER
+══════════════════════════════════ */
+#home-view {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── TOP NAV ─── */
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: rgba(12,12,15,0.85);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+}
+
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.brand-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--amber) 0%, #E8830A 100%);
+  border-radius: 8px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2.5px; padding: 6px;
+}
+.brand-cell { background: rgba(255,255,255,0.9); border-radius: 1.5px; }
+.brand-cell:nth-child(2), .brand-cell:nth-child(3) { background: rgba(255,255,255,0.35); }
+
+.brand-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.brand-name em { color: var(--amber); font-style: normal; }
+
+.nav-center {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.nav-tab {
+  padding: 7px 16px;
+  border-radius: 7px;
+  font-size: 13px; font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none; background: none;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: var(--text); }
+.nav-tab.active {
+  background: var(--card);
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+.nav-right { display: flex; align-items: center; gap: 10px; }
+
+.nav-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--amber), #E8830A);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  color: #0C0C0F;
+  cursor: pointer;
+}
+
+.nav-upgrade {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 14px;
+  background: linear-gradient(135deg, var(--amber), #E8830A);
+  border-radius: 8px;
+  font-size: 12px; font-weight: 700;
+  color: #0C0C0F;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s, transform 0.2s;
+  letter-spacing: 0.01em;
+}
+.nav-upgrade:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ─── HERO STRIP ─── */
+.hero-strip {
+  padding: 48px 32px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.hero-greeting {
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.hero-greeting::before {
+  content: '';
+  width: 16px; height: 1px;
+  background: var(--amber);
+}
+
+.hero-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+
+.hero-sub {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 520px;
+}
+
+/* ─── SEARCH BAR ─── */
+.search-wrap {
+  padding: 28px 32px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: 12px;
+  padding: 12px 18px;
+  transition: border-color 0.2s;
+  max-width: 520px;
+}
+.search-bar:focus-within { border-color: var(--amber); }
+
+.search-icon { font-size: 16px; color: var(--muted); flex-shrink: 0; }
+.search-input {
+  flex: 1;
+  background: none; border: none; outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14px; color: var(--text);
+}
+.search-input::placeholder { color: var(--muted); }
+.search-kbd {
+  font-size: 10px; font-weight: 600;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* ─── CATEGORY FILTERS ─── */
+.filters {
+  padding: 20px 32px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: none;
+  white-space: nowrap;
+}
+.filter-chip:hover { border-color: var(--border-hi); color: var(--text); }
+.filter-chip.active { background: var(--amber-dim); border-color: rgba(245,166,35,0.3); color: var(--amber); }
+
+/* ─── SECTION LABEL ─── */
+.section-label {
+  padding: 28px 32px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.section-title {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.section-count {
+  font-size: 12px; font-weight: 500;
+  color: var(--subtle);
+}
+
+/* ─── AGENT GRID ─── */
+.agent-grid {
+  padding: 16px 32px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+/* ─── AGENT CARD ─── */
+.agent-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px;
+  animation: cardIn 0.4s ease both;
+}
+
+@keyframes cardIn {
+  from { opacity:0; transform: translateY(12px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.agent-card:nth-child(1) { animation-delay: 0.05s; }
+.agent-card:nth-child(2) { animation-delay: 0.09s; }
+.agent-card:nth-child(3) { animation-delay: 0.13s; }
+.agent-card:nth-child(4) { animation-delay: 0.17s; }
+.agent-card:nth-child(5) { animation-delay: 0.21s; }
+.agent-card:nth-child(6) { animation-delay: 0.25s; }
+.agent-card:nth-child(7) { animation-delay: 0.29s; }
+.agent-card:nth-child(8) { animation-delay: 0.33s; }
+.agent-card:nth-child(9) { animation-delay: 0.37s; }
+.agent-card:nth-child(10) { animation-delay: 0.41s; }
+
+.agent-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.agent-card:hover {
+  background: var(--card-hover);
+  border-color: var(--border-md);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.agent-card:hover::before { opacity: 1; }
+
+/* Color themes per card */
+.card-amber::before { background: radial-gradient(circle at 0% 0%, rgba(245,166,35,0.07) 0%, transparent 60%); }
+.card-cyan::before { background: radial-gradient(circle at 0% 0%, rgba(34,211,238,0.07) 0%, transparent 60%); }
+.card-violet::before { background: radial-gradient(circle at 0% 0%, rgba(167,139,250,0.07) 0%, transparent 60%); }
+.card-emerald::before { background: radial-gradient(circle at 0% 0%, rgba(52,211,153,0.07) 0%, transparent 60%); }
+.card-rose::before { background: radial-gradient(circle at 0% 0%, rgba(251,113,133,0.07) 0%, transparent 60%); }
+.card-sky::before { background: radial-gradient(circle at 0% 0%, rgba(56,189,248,0.07) 0%, transparent 60%); }
+
+.card-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+
+.agent-icon {
+  width: 44px; height: 44px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.icon-amber { background: var(--amber-dim); border: 1px solid rgba(245,166,35,0.2); }
+.icon-cyan { background: var(--cyan-dim); border: 1px solid rgba(34,211,238,0.2); }
+.icon-violet { background: var(--violet-dim); border: 1px solid rgba(167,139,250,0.2); }
+.icon-emerald { background: var(--emerald-dim); border: 1px solid rgba(52,211,153,0.2); }
+.icon-rose { background: var(--rose-dim); border: 1px solid rgba(251,113,133,0.2); }
+.icon-sky { background: var(--sky-dim); border: 1px solid rgba(56,189,248,0.2); }
+
+.card-badges { display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+
+.badge {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+.badge-free { background: var(--emerald-dim); color: var(--emerald); border: 1px solid rgba(52,211,153,0.2); }
+.badge-pro { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
+.badge-new { background: var(--violet-dim); color: var(--violet); border: 1px solid rgba(167,139,250,0.2); }
+.badge-hot { background: var(--rose-dim); color: var(--rose); border: 1px solid rgba(251,113,133,0.2); }
+
+.agent-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 16px; font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.2px;
+}
+
+.agent-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.card-meta {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; color: var(--subtle);
+}
+
+.meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--subtle); }
+
+.card-cta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.agent-card:hover .card-cta { color: var(--text); gap: 8px; }
+.cta-arrow { font-size: 14px; transition: transform 0.2s; }
+.agent-card:hover .cta-arrow { transform: translateX(3px); }
+
+/* ─── FEATURED CARD (wide) ─── */
+.agent-card.featured {
+  grid-column: span 2;
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  background: linear-gradient(135deg, rgba(245,166,35,0.08) 0%, var(--card) 50%);
+  border-color: rgba(245,166,35,0.2);
+}
+
+.featured-content { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.featured-icon {
+  width: 64px; height: 64px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,0.25);
+  flex-shrink: 0;
+}
+
+.featured-launch {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 20px;
+  background: var(--amber);
+  color: #0C0C0F;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  margin-top: 4px;
+  align-self: flex-start;
+}
+.featured-launch:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ─── STATS ROW ─── */
+.stats-row {
+  padding: 0 32px 28px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+
+.stat-icon { font-size: 22px; }
+.stat-info {}
+.stat-val {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px; font-weight: 700;
+}
+.stat-val.amber { color: var(--amber); }
+.stat-val.cyan { color: var(--cyan); }
+.stat-val.violet { color: var(--violet); }
+.stat-val.emerald { color: var(--emerald); }
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* ══════════════════════════════════
+   AGENT WORKSPACE
+══════════════════════════════════ */
+#workspace-view {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-nav {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(12,12,15,0.9);
+  backdrop-filter: blur(20px);
+  position: sticky; top: 0; z-index: 100;
+}
+
+.back-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: none; color: var(--muted);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.back-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+.ws-title-wrap { flex: 1; }
+.ws-agent-name {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px; font-weight: 700;
+}
+.ws-agent-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+
+.ws-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+}
+
+/* ─── WORKSPACE LAYOUT ─── */
+.workspace-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  flex: 1;
+  height: calc(100vh - 69px);
+  overflow: hidden;
+}
+
+/* ─── CHAT PANEL ─── */
+.chat-panel {
+  display: flex; flex-direction: column;
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 18px;
+  scroll-behavior: smooth;
+}
+
+/* Empty state */
+.empty-state {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+}
+.empty-icon { font-size: 48px; }
+.empty-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 20px; font-weight: 700;
+}
+.empty-sub { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 340px; }
+
+.prompt-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.prompt-chip {
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.prompt-chip:hover { background: var(--card); border-color: var(--border-hi); color: var(--text); }
+
+/* Messages */
+.msg-row { display: flex; gap: 10px; align-items: flex-start; }
+.msg-row.user { flex-direction: row-reverse; }
+
+.msg-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; margin-top: 2px;
+}
+.msg-avatar.ai { background: var(--amber-dim); border: 1px solid rgba(245,166,35,0.2); color: var(--amber); font-size: 14px; }
+.msg-avatar.user { background: var(--card); border: 1px solid var(--border-md); color: var(--text); }
+
+.msg-bubble {
+  max-width: 76%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+.msg-row.ai .msg-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top-left-radius: 4px;
+  color: var(--text);
+}
+.msg-row.user .msg-bubble {
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,0.2);
+  border-top-right-radius: 4px;
+  color: var(--text);
+}
+
+/* Typing dots */
+.typing-row { display: flex; gap: 10px; align-items: flex-start; }
+.typing-bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; border-top-left-radius: 4px;
+  padding: 14px 18px;
+  display: flex; gap: 5px; align-items: center;
+}
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--amber);
+  animation: typingPulse 1.3s infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typingPulse {
+  0%,80%,100% { opacity: 0.2; transform: scale(0.85); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* ─── INPUT BAR ─── */
+.chat-input-wrap {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.input-box {
+  display: flex; align-items: flex-end; gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-md);
+  border-radius: 12px;
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.input-box:focus-within { border-color: rgba(245,166,35,0.4); }
+
+.chat-textarea {
+  flex: 1;
+  background: none; border: none; outline: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13.5px; color: var(--text);
+  resize: none;
+  min-height: 22px; max-height: 120px;
+  line-height: 1.55;
+}
+.chat-textarea::placeholder { color: var(--muted); }
+
+.send-btn {
+  width: 34px; height: 34px;
+  background: var(--amber);
+  border: none; border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.send-btn:hover { opacity: 0.85; transform: scale(1.05); }
+.send-btn svg { color: #0C0C0F; }
+
+/* ─── SIDEBAR ─── */
+.ws-sidebar {
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0;
+}
+
+.sidebar-section {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--subtle);
+  margin-bottom: 12px;
+}
+
+.template-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-size: 12.5px; color: var(--muted);
+  margin-bottom: 2px;
+}
+.template-item:hover { background: var(--surface); color: var(--text); }
+.template-item:hover .template-go { opacity: 1; }
+.template-emoji { font-size: 15px; flex-shrink: 0; }
+.template-text { flex: 1; line-height: 1.4; }
+.template-go { font-size: 11px; color: var(--subtle); opacity: 0; transition: opacity 0.15s; }
+
+.ws-action-btn {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 10px 12px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px; font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  margin-bottom: 6px;
+}
+.ws-action-btn:hover { border-color: var(--border-hi); color: var(--text); background: var(--surface); }
+
+.credit-notice {
+  margin: 16px 20px;
+  padding: 12px 14px;
+  background: var(--amber-dim);
+  border: 1px solid rgba(245,166,35,0.2);
+  border-radius: 10px;
+  font-size: 12px; color: var(--muted);
+  line-height: 1.6;
+}
+.credit-notice strong { color: var(--amber); }
+
+/* ══════════════════════════════════
+   TOAST
+══════════════════════════════════ */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 9000;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  transform: translateY(70px); opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast-success { background: var(--emerald); color: #0C0C0F; }
+.toast-info { background: var(--surface); color: var(--text); border: 1px solid var(--border-hi); }
+.toast-warn { background: var(--amber); color: #0C0C0F; }
+
+/* ══════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════ */
+@media (max-width: 900px) {
+  .nav-center { display: none; }
+  .agent-grid { grid-template-columns: 1fr 1fr; padding: 12px 16px 32px; }
+  .agent-card.featured { grid-column: span 2; flex-direction: column; }
+  .hero-strip, .search-wrap, .filters, .section-label, .stats-row { padding-left: 16px; padding-right: 16px; }
+  .stats-row { grid-template-columns: repeat(2,1fr); }
+  .workspace-body { grid-template-columns: 1fr; }
+  .ws-sidebar { display: none; }
+}
+@media (max-width: 600px) {
+  .agent-grid { grid-template-columns: 1fr; }
+  .agent-card.featured { grid-column: span 1; }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════
+     HOME VIEW
+══════════════════════════════════ -->
+<div class="view active" id="home-view">
+
+  <!-- NAV -->
+  <nav class="topnav">
+    <div class="nav-brand" onclick="">
+      <div class="brand-mark">
+        <div class="brand-cell"></div><div class="brand-cell"></div>
+        <div class="brand-cell"></div><div class="brand-cell"></div>
+      </div>
+      <span class="brand-name">ARCH<em>Grid</em> AI</span>
+    </div>
+
+    <div class="nav-center">
+      <button class="nav-tab active" onclick="filterAgents('all',this)">All Agents</button>
+      <button class="nav-tab" onclick="filterAgents('architecture',this)">Architecture</button>
+      <button class="nav-tab" onclick="filterAgents('exam',this)">Exam Prep</button>
+      <button class="nav-tab" onclick="filterAgents('security',this)">Security</button>
+    </div>
+
+    <div class="nav-right">
+      <button class="nav-upgrade" onclick="showToast('Upgrade flow — connect Stripe to activate','info')">⚡ Upgrade Pro</button>
+      <div class="nav-avatar">G</div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="hero-strip">
+    <div class="hero-greeting">ARCHGrid AI Platform</div>
+    <h1 class="hero-title">Your Enterprise Architecture<br>AI Command Centre</h1>
+    <p class="hero-sub">10 specialist AI agents for GCC EA practitioners — audit architectures, build roadmaps, prep for TOGAF, and advise on ICS/OT security.</p>
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-wrap">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" type="text" placeholder="Search agents…" id="search-input" oninput="searchAgents(this.value)">
+      <span class="search-kbd">⌘K</span>
+    </div>
+  </div>
+
+  <!-- FILTERS -->
+  <div class="filters">
+    <button class="filter-chip active" onclick="filterChip(this,'all')">✦ All</button>
+    <button class="filter-chip" onclick="filterChip(this,'free')">Free</button>
+    <button class="filter-chip" onclick="filterChip(this,'pro')">Pro</button>
+    <button class="filter-chip" onclick="filterChip(this,'architecture')">Architecture</button>
+    <button class="filter-chip" onclick="filterChip(this,'exam')">Exam Prep</button>
+    <button class="filter-chip" onclick="filterChip(this,'security')">Security</button>
+    <button class="filter-chip" onclick="filterChip(this,'documents')">Documents</button>
+    <button class="filter-chip" onclick="filterChip(this,'strategy')">Strategy</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row" style="margin-top:28px;">
+    <div class="stat-tile">
+      <span class="stat-icon">🤖</span>
+      <div class="stat-info">
+        <div class="stat-val amber">10</div>
+        <div class="stat-lbl">AI Agents</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-icon">💳</span>
+      <div class="stat-info">
+        <div class="stat-val cyan">3</div>
+        <div class="stat-lbl">Free Credits</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-icon">📝</span>
+      <div class="stat-info">
+        <div class="stat-val violet">30</div>
+        <div class="stat-lbl">Exam Questions</div>
+      </div>
+    </div>
+    <div class="stat-tile">
+      <span class="stat-icon">⚡</span>
+      <div class="stat-info">
+        <div class="stat-val emerald">Free</div>
+        <div class="stat-lbl">To Start</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION LABEL -->
+  <div class="section-label">
+    <span class="section-title">Available Agents</span>
+    <span class="section-count" id="agent-count">10 agents</span>
+  </div>
+
+  <!-- AGENT GRID -->
+  <div class="agent-grid" id="agent-grid">
+
+    <!-- FEATURED -->
+    <div class="agent-card featured card-amber" data-category="architecture" data-tier="free" onclick="launchAgent('auditor')">
+      <div class="featured-icon">🔍</div>
+      <div class="featured-content">
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <div class="badge badge-free">Free</div>
+          <div class="badge badge-hot">Most Used</div>
+        </div>
+        <div class="agent-name" style="font-size:20px;">EA Auditor</div>
+        <div class="agent-desc">Paste your architecture or describe your current state. Get a TOGAF ADM-aligned gap analysis with risk ratings and prioritised recommendations — in under 30 seconds.</div>
+        <button class="featured-launch" onclick="event.stopPropagation();launchAgent('auditor')">Launch Agent →</button>
+      </div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="agent-card card-cyan" data-category="architecture" data-tier="pro" onclick="launchAgent('roadmap')">
+      <div class="card-top">
+        <div class="agent-icon icon-cyan">🗺️</div>
+        <div class="card-badges"><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">Roadmap Builder</div>
+      <div class="agent-desc">Generate phased TOGAF-aligned digital transformation roadmaps. Input your sector, maturity, and goals — get a 3-year plan with quick wins and strategic programs.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Architecture</span><span class="meta-dot"></span><span>Pro</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="agent-card card-violet" data-category="exam" data-tier="free" onclick="launchAgent('coach')">
+      <div class="card-top">
+        <div class="agent-icon icon-violet">🎓</div>
+        <div class="card-badges"><span class="badge badge-free">Free</span></div>
+      </div>
+      <div class="agent-name">TOGAF Coach</div>
+      <div class="agent-desc">Expert TOGAF 9.2/10 methodology coaching with real GCC sector examples. Ask anything — ADM phases, architecture domains, exam tips, ICS/OT concepts.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Exam Prep</span><span class="meta-dot"></span><span>Free</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class="agent-card card-emerald" data-category="architecture strategy" data-tier="pro" onclick="launchAgent('maturity')">
+      <div class="card-top">
+        <div class="agent-icon icon-emerald">📊</div>
+        <div class="card-badges"><span class="badge badge-new">New</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">EA Maturity Assessor</div>
+      <div class="agent-desc">Answer 20 structured questions across Governance, Process, Data, Technology, and People. Get a GCC-benchmarked maturity score with a radar chart and improvement plan.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Strategy</span><span class="meta-dot"></span><span>20 Questions</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 5 -->
+    <div class="agent-card card-amber" data-category="documents architecture" data-tier="pro" onclick="launchAgent('docgen')">
+      <div class="card-top">
+        <div class="agent-icon icon-amber">📄</div>
+        <div class="card-badges"><span class="badge badge-new">New</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">Architecture Doc Generator</div>
+      <div class="agent-desc">Generate ready-to-use TOGAF artefacts: Architecture Vision, Statement of Architecture Work, Gap Analysis, Roadmap — formatted and exportable in minutes.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Documents</span><span class="meta-dot"></span><span>TOGAF ADM</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 6 -->
+    <div class="agent-card card-rose" data-category="security" data-tier="pro" onclick="launchAgent('icsadvisor')">
+      <div class="card-top">
+        <div class="agent-icon icon-rose">🔐</div>
+        <div class="card-badges"><span class="badge badge-hot">Hot</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">OT/IT Security Advisor</div>
+      <div class="agent-desc">Describe your SCADA/DCS/ICS environment. Get zone segmentation designs, IEC 62443 alignment, purdue model recommendations, and OT-specific security controls.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Security</span><span class="meta-dot"></span><span>ICS/OT</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 7 -->
+    <div class="agent-card card-sky" data-category="strategy" data-tier="pro" onclick="launchAgent('rfp')">
+      <div class="card-top">
+        <div class="agent-icon icon-sky">📋</div>
+        <div class="card-badges"><span class="badge badge-new">New</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">RFP / Tender Analyser</div>
+      <div class="agent-desc">Paste a UAE or Saudi government RFP or tender. Extract EA requirements, identify architecture risks, and get a structured response outline — ready for bid teams.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Strategy</span><span class="meta-dot"></span><span>GCC Gov</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 8 -->
+    <div class="agent-card card-violet" data-category="exam" data-tier="pro" onclick="launchAgent('exam')">
+      <div class="card-top">
+        <div class="agent-icon icon-violet">📝</div>
+        <div class="card-badges"><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">Practice Exam Engine</div>
+      <div class="agent-desc">TOGAF Level 1, EA Fundamentals, and ICS/OT Security timed practice tests with AI-powered explanations, score tracking, and personalised weak area analysis.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Exam Prep</span><span class="meta-dot"></span><span>30+ Questions</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 9 -->
+    <div class="agent-card card-cyan" data-category="strategy" data-tier="pro" onclick="launchAgent('vendor')">
+      <div class="card-top">
+        <div class="agent-icon icon-cyan">⚖️</div>
+        <div class="card-badges"><span class="badge badge-new">New</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">Vendor Evaluator</div>
+      <div class="agent-desc">Input a technology requirement — cloud ERP, integration platform, analytics — and get a scored comparison of 3–5 vendors across architecture fit, GCC presence, and TCO.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Strategy</span><span class="meta-dot"></span><span>GCC Market</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+    <!-- CARD 10 -->
+    <div class="agent-card card-emerald" data-category="documents strategy" data-tier="pro" onclick="launchAgent('boardreport')">
+      <div class="card-top">
+        <div class="agent-icon icon-emerald">🏛️</div>
+        <div class="card-badges"><span class="badge badge-new">New</span><span class="badge badge-pro">Pro</span></div>
+      </div>
+      <div class="agent-name">Board Report Generator</div>
+      <div class="agent-desc">Transform raw architecture findings into a polished C-suite or board-ready executive summary. Structured, professional, and export-ready as PDF or PPTX.</div>
+      <div class="card-footer">
+        <div class="card-meta"><span>Documents</span><span class="meta-dot"></span><span>Executive</span></div>
+        <div class="card-cta">Open <span class="cta-arrow">→</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     WORKSPACE VIEW
+══════════════════════════════════ -->
+<div class="view" id="workspace-view">
+
+  <nav class="workspace-nav">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div class="ws-icon" id="ws-icon">🔍</div>
+    <div class="ws-title-wrap">
+      <div class="ws-agent-name" id="ws-agent-name">EA Auditor</div>
+      <div class="ws-agent-sub" id="ws-agent-sub">TOGAF-aligned architecture gap analysis</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="ws-badge" class="badge badge-free">Free</span>
+      <button class="nav-upgrade" onclick="showToast('Upgrade to Pro for unlimited access','info')" style="font-size:11px;padding:6px 12px;">⚡ Pro</button>
+    </div>
+  </nav>
+
+  <div class="workspace-body">
+
+    <!-- CHAT -->
+    <div class="chat-panel">
+      <div class="chat-messages" id="chat-messages">
+        <!-- Empty state shown by default, replaced on first message -->
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon" id="empty-icon">🔍</div>
+          <div class="empty-title" id="empty-title">EA Auditor Ready</div>
+          <div class="empty-sub" id="empty-sub">Describe your architecture or choose a starting point below.</div>
+          <div class="prompt-chips" id="prompt-chips"></div>
+        </div>
+      </div>
+
+      <div class="chat-input-wrap">
+        <div class="input-box">
+          <textarea class="chat-textarea" id="chat-input" placeholder="Describe your architecture challenge…" rows="1"
+            oninput="autoResize(this)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+          <button class="send-btn" onclick="sendMsg()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M12.5 7L1.5 1.5L4 7L1.5 12.5L12.5 7Z" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="ws-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Quick Start</div>
+        <div id="sidebar-templates"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Actions</div>
+        <button class="ws-action-btn" onclick="clearChat()">🗑 Clear conversation</button>
+        <button class="ws-action-btn" onclick="copyChat()">📋 Copy response</button>
+        <button class="ws-action-btn" onclick="showToast('PDF export available on Pro plan','info')">🔒 Export as PDF</button>
+        <button class="ws-action-btn" onclick="showToast('PPTX export available on Pro plan','info')">🔒 Export as PPTX</button>
+      </div>
+      <div class="credit-notice" id="credit-notice">
+        You have <strong id="credit-count">3 free credits</strong> remaining this month. <strong style="color:var(--amber);cursor:pointer;" onclick="showToast('Upgrade to Pro for unlimited access','info')">Upgrade for unlimited →</strong>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════
+// AGENT CONFIG
+// ══════════════════════════════════
+const agents = {
+  auditor: {
+    name: 'EA Auditor',
+    sub: 'TOGAF ADM-aligned gap analysis',
+    icon: '🔍',
+    iconClass: 'icon-amber',
+    badge: 'Free',
+    badgeClass: 'badge-free',
+    emptyTitle: 'EA Auditor Ready',
+    emptySub: 'Describe your architecture or select a starting point below.',
+    placeholder: 'Describe your current-state architecture, systems, or EA challenge…',
+    chips: ['Audit my utility OT/IT landscape','Review our EA governance gaps','Assess our digital maturity','Technology debt review'],
+    templates: [
+      { emoji:'🏭', text:'UAE Utility OT/IT Audit', prompt:'GCC utility company: legacy OT (SCADA, DCS) on Windows 7, integrating with SAP S/4HANA. No formal EA governance. Audit current state and identify TOGAF ADM gaps.' },
+      { emoji:'⚡', text:'Energy Company Audit', prompt:'UAE energy firm, 500 staff, 12 siloed systems, no integration layer, no data governance, ad-hoc cloud. Provide a structured EA audit.' },
+      { emoji:'🏛️', text:'Government Digital Audit', prompt:'Government authority transforming digitally. 5 focus areas: citizen portal, data analytics, cloud, cybersecurity, smart services. Audit capability gaps vs UAE Vision 2031.' },
+      { emoji:'🔧', text:'Technology Debt Review', prompt:'Legacy SAP ECC, Oracle DB, Excel reporting, no API layer, manual data transfers, 5-year-old security policies. Assess architecture debt.' },
+    ],
+    system: `You are an expert Enterprise Architect and EA Auditor for ARCHGrid, a GCC-focused advisory firm. Specialise in TOGAF ADM, utility/energy sector, OT/IT convergence, ICS/SCADA. Provide structured audits: 1) Current State Summary, 2) Key Architecture Gaps (4–6 specific gaps with severity), 3) Risk Assessment (High/Medium/Low), 4) Recommended Actions (TOGAF ADM aligned), 5) Quick Wins (0–3 months). Be specific, reference TOGAF and GCC context. Use clear headers and bold key points.`
+  },
+  roadmap: {
+    name: 'Roadmap Builder',
+    sub: 'Phased digital transformation roadmaps',
+    icon: '🗺️',
+    iconClass: 'icon-cyan',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'Roadmap Builder',
+    emptySub: 'Describe your organisation and transformation goals to generate a full TOGAF-aligned roadmap.',
+    placeholder: 'Describe your organisation, sector, maturity level, and transformation goals…',
+    chips: ['UAE utility 3-year DX roadmap','Vision 2030 energy roadmap','EA governance from scratch','Smart grid transformation plan'],
+    templates: [
+      { emoji:'⚡', text:'UAE Utility DX Roadmap', prompt:'3-year DX roadmap for UAE utility. Focus: Smart Grid, OT/IT integration, customer portal, data analytics, cybersecurity. Current maturity: Level 2.' },
+      { emoji:'🇸🇦', text:'Vision 2030 Roadmap', prompt:'Saudi energy company DX roadmap aligned to Vision 2030. Cloud migration, data governance, AI/analytics, digital upskilling. 18-month timeline.' },
+      { emoji:'🏛️', text:'EA Governance Roadmap', prompt:'EA governance roadmap for 200-person infrastructure firm: TOGAF practice, architecture review board, tech standards, portfolio management. Zero EA maturity start.' },
+    ],
+    system: `You are an expert Enterprise Architect specialising in digital transformation roadmaps for GCC utility, energy, and infrastructure organisations. Know TOGAF ADM, UAE Vision 2031, Saudi Vision 2030. Create structured roadmaps: 1) Executive Summary, 2) Current State, 3) Target Vision, 4) Phase 1 (0–6mo Quick Wins), 5) Phase 2 (6–18mo Core), 6) Phase 3 (18–36mo Strategic), 7) Risks, 8) Investment Ranges. Be specific and practical.`
+  },
+  coach: {
+    name: 'TOGAF Coach',
+    sub: 'Expert EA methodology guidance',
+    icon: '🎓',
+    iconClass: 'icon-violet',
+    badge: 'Free',
+    badgeClass: 'badge-free',
+    emptyTitle: 'TOGAF Coach',
+    emptySub: 'Ask anything about TOGAF, EA methodology, ICS/OT security, or GCC-specific architecture.',
+    placeholder: 'Ask any TOGAF, EA methodology, or ICS/OT architecture question…',
+    chips: ['Explain TOGAF ADM phases','BA vs Technology Architecture','TOGAF exam tips','ICS security zones explained'],
+    templates: [
+      { emoji:'📚', text:'TOGAF ADM phases', prompt:'Explain the TOGAF ADM cycle phases and how they apply to a GCC utility company undergoing digital transformation.' },
+      { emoji:'⚡', text:'BA vs TA difference', prompt:'What is the difference between Business Architecture and Technology Architecture in TOGAF? Give a practical energy sector example.' },
+      { emoji:'🔐', text:'OT/IT security design', prompt:'How do I design a secure OT/IT converged architecture for a power grid operator? Key security zones and ICS architecture principles?' },
+      { emoji:'📝', text:'Practice questions', prompt:'Give me 5 TOGAF Level 1 exam practice questions with detailed explanations.' },
+    ],
+    system: `You are an expert TOGAF coach and EA mentor. Deep knowledge of TOGAF 9.2/10, ArchiMate 3, SABSA, ICS/OT security for GCC utility and energy sectors. Give clear expert explanations with practical GCC examples. For exam questions provide 4 answer options with explanations. Be encouraging, precise, and relate theory to GCC practical application.`
+  },
+  maturity: {
+    name: 'EA Maturity Assessor',
+    sub: 'GCC-benchmarked maturity scoring',
+    icon: '📊',
+    iconClass: 'icon-emerald',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'EA Maturity Assessor',
+    emptySub: 'Answer questions about your organisation to get a benchmarked maturity score across 5 dimensions.',
+    placeholder: 'Describe your organisation or answer the assessment questions…',
+    chips: ['Start full assessment','Assess governance maturity','Rate our data architecture','Quick maturity check'],
+    templates: [
+      { emoji:'🏢', text:'Full Maturity Assessment', prompt:'Run a full EA maturity assessment for our organisation. Ask me the 20 structured questions across Governance, Process, Data Architecture, Technology, and People dimensions. Then score us 1–5 on each and provide a GCC benchmark comparison.' },
+      { emoji:'🏛️', text:'Governance Dimension', prompt:'Assess only our EA governance maturity. Ask targeted questions about our architecture board, decision-making, principles, and compliance processes.' },
+      { emoji:'📈', text:'Quick 5-Minute Check', prompt:'Run a quick 10-question EA maturity check. Keep it concise. Score us and give top 3 priority improvements.' },
+    ],
+    system: `You are an expert EA maturity assessor for GCC organisations. Conduct structured assessments across 5 dimensions: Governance (architecture board, decisions, compliance), Process (ADM adoption, repeatable processes), Data Architecture (data governance, quality, catalogues), Technology (standards, debt, cloud), People (skills, training, culture). Score each 1–5. Benchmark against typical GCC utility/energy/government organisations. Provide a radar chart description, overall score, and top 5 improvement recommendations with estimated effort.`
+  },
+  docgen: {
+    name: 'Architecture Doc Generator',
+    sub: 'TOGAF artefacts in minutes',
+    icon: '📄',
+    iconClass: 'icon-amber',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'Document Generator',
+    emptySub: 'Describe your project or engagement and generate ready-to-use TOGAF artefacts instantly.',
+    placeholder: 'Describe your project, organisation, and which document you need…',
+    chips: ['Architecture Vision doc','Statement of Architecture Work','Gap Analysis report','Architecture Principles'],
+    templates: [
+      { emoji:'📋', text:'Architecture Vision', prompt:'Generate a complete TOGAF Architecture Vision document for a UAE utility company (water and electricity) starting a digital transformation programme. Include: sponsor, scope, constraints, stakeholders, high-level roadmap.' },
+      { emoji:'📝', text:'Statement of Arch Work', prompt:'Generate a Statement of Architecture Work for a GCC energy company migrating from legacy SAP ECC to S/4HANA with OT/IT integration. Include scope, objectives, approach, deliverables, timeline.' },
+      { emoji:'📊', text:'Gap Analysis Report', prompt:'Generate a Gap Analysis report template for a utility company moving from a siloed IT landscape to an integrated enterprise architecture. Include current state, target state, gaps table, and remediation priorities.' },
+    ],
+    system: `You are an expert TOGAF Enterprise Architect specialising in architecture documentation for GCC utility, energy, and government organisations. Generate professional, complete TOGAF artefacts. Use proper TOGAF terminology. Structure documents with clear sections, tables, and professionally worded content. Include GCC-relevant context, regulatory references (UAE IA Regulation, NCA, NESA where applicable), and make all content specific and actionable — not generic templates.`
+  },
+  icsadvisor: {
+    name: 'OT/IT Security Advisor',
+    sub: 'ICS/SCADA security architecture',
+    icon: '🔐',
+    iconClass: 'icon-rose',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'OT/IT Security Advisor',
+    emptySub: 'Describe your industrial control system environment to get security architecture recommendations.',
+    placeholder: 'Describe your OT environment — SCADA, DCS, PLCs, network topology…',
+    chips: ['Design OT/IT security zones','IEC 62443 alignment','Purdue Model design','Secure remote access OT'],
+    templates: [
+      { emoji:'⚡', text:'Power Grid Security Design', prompt:'Design a security architecture for a UAE power grid operator. We have ABB DCS for generation, SCADA for transmission, and Siemens PLCs at substations. We need to integrate historian data with SAP. Design our security zones, DMZ, and controls aligned to IEC 62443 and Purdue Model.' },
+      { emoji:'💧', text:'Water Utility OT Security', prompt:'Security architecture for a UAE water utility. We have legacy OT (some Windows XP HMIs), no DMZ between OT and IT, and a new cloud ERP. Identify risks and recommend a phased remediation architecture.' },
+      { emoji:'🛡️', text:'ICS Incident Response', prompt:'Design an incident response architecture for ICS/OT environments in a GCC utility. Include detection, containment, evidence collection, and recovery procedures specific to operational technology.' },
+    ],
+    system: `You are an expert ICS/OT cybersecurity architect with deep knowledge of IEC 62443, Purdue Model, NIST CSF for ICS, and UAE/GCC critical infrastructure requirements (NESA, UAE IA Regulation). Specialise in SCADA, DCS, PLC, and ICS security architecture. Provide detailed, practical security architecture recommendations including: zone segmentation, DMZ design, data diode usage, remote access security, patch management for OT, incident response, and compliance mapping. Reference specific standards and GCC regulatory requirements.`
+  },
+  rfp: {
+    name: 'RFP / Tender Analyser',
+    sub: 'GCC government bid analysis',
+    icon: '📋',
+    iconClass: 'icon-sky',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'RFP Analyser',
+    emptySub: 'Paste a government RFP or tender document to extract EA requirements and draft a response outline.',
+    placeholder: 'Paste the RFP or tender text, or describe the key requirements…',
+    chips: ['Extract EA requirements','Identify architecture risks','Draft response outline','Estimate effort & resources'],
+    templates: [
+      { emoji:'🏛️', text:'UAE Gov DX Tender', prompt:'Analyse this typical UAE government digital transformation RFP scenario: Authority seeks consultancy for a 3-year DX programme including cloud migration, citizen portal, data analytics platform, and cybersecurity uplift. Budget: AED 15M. Extract EA requirements, risks, and draft response outline.' },
+      { emoji:'🇸🇦', text:'Saudi Vision 2030 Bid', prompt:'Analyse a Saudi Vision 2030 infrastructure digitalisation tender for a utility company. Requirements: smart metering, grid management system, customer self-service. Identify architecture components needed and bid strategy.' },
+    ],
+    system: `You are an expert enterprise architecture consultant specialising in GCC government and utility sector RFPs and tenders. Analyse tender documents and: 1) Extract key EA and technology requirements, 2) Identify architecture risks and ambiguities, 3) Map requirements to TOGAF domains, 4) Recommend architecture approach and key decisions, 5) Draft a structured response outline with section headings, 6) Estimate team composition and effort in person-days. Reference UAE/Saudi procurement norms and Vision 2030/2031 alignment.`
+  },
+  exam: {
+    name: 'Practice Exam Engine',
+    sub: 'TOGAF, EA & ICS/OT tests',
+    icon: '📝',
+    iconClass: 'icon-violet',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'Practice Exam Engine',
+    emptySub: 'Choose your exam topic and start a timed practice session with AI-powered explanations.',
+    placeholder: 'Ask for practice questions or type a topic to quiz yourself on…',
+    chips: ['Start TOGAF Level 1 quiz','10 ICS/OT security questions','EA Fundamentals test','Quiz me on ADM Phase A'],
+    templates: [
+      { emoji:'📚', text:'TOGAF Level 1 — 10 Qs', prompt:'Give me 10 TOGAF Level 1 practice questions. Present them one at a time. Wait for my answer, then tell me if I am correct, explain the right answer, and move to the next question. Track my score.' },
+      { emoji:'🔐', text:'ICS/OT Security — 10 Qs', prompt:'Give me 10 ICS/OT cybersecurity practice questions covering Purdue Model, IEC 62443, and OT security architecture. One at a time, mark my answers, and keep score.' },
+      { emoji:'🏛️', text:'EA Fundamentals — 10 Qs', prompt:'Give me 10 Enterprise Architecture fundamentals questions covering domains, frameworks, and architecture principles. Interactive format with scoring.' },
+    ],
+    system: `You are an expert TOGAF and EA exam coach. Conduct interactive practice exam sessions. Present questions one at a time with 4 multiple choice options (A/B/C/D). Wait for the user's answer. Then: reveal if correct or incorrect, provide a detailed explanation, update the running score (e.g. "Score: 3/5"), and present the next question. After the final question, give a summary with score, percentage, weak areas, and 3 specific study recommendations. Make questions realistic exam-level difficulty.`
+  },
+  vendor: {
+    name: 'Vendor Evaluator',
+    sub: 'Scored vendor comparison matrix',
+    icon: '⚖️',
+    iconClass: 'icon-cyan',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'Vendor Evaluator',
+    emptySub: 'Describe your technology requirement and get a scored vendor comparison for the GCC market.',
+    placeholder: 'Describe the technology capability you need and your context…',
+    chips: ['Compare cloud ERP vendors','Integration platform comparison','Analytics platform for utility','SCADA vendor comparison GCC'],
+    templates: [
+      { emoji:'☁️', text:'Cloud ERP for UAE Utility', prompt:'Compare cloud ERP vendors for a UAE utility company (800 staff). Requirements: asset management, finance, HR, OT integration, UAE VAT compliance, Arabic language support, local data residency. Evaluate SAP S/4HANA, Oracle Fusion, and Microsoft Dynamics 365.' },
+      { emoji:'🔗', text:'Integration Platform', prompt:'Compare integration/API platforms for a GCC energy company needing to connect SCADA historian, SAP, and a new analytics platform. Evaluate MuleSoft, Azure Integration Services, and Dell Boomi for GCC deployment.' },
+      { emoji:'📊', text:'Analytics Platform', prompt:'Compare data analytics platforms for a UAE utility. Requirements: real-time operational data from historian, executive dashboards, predictive maintenance. Evaluate Microsoft Power BI, Tableau, and SAP Analytics Cloud.' },
+    ],
+    system: `You are an expert enterprise technology architect specialising in vendor evaluation for GCC utility, energy, and government organisations. Produce structured vendor comparisons with: 1) Evaluation criteria with weightings, 2) Scored comparison matrix (1–5 per criterion), 3) GCC market presence and local support assessment, 4) Total Cost of Ownership estimate, 5) Architecture fit rating, 6) Recommended vendor with justification, 7) Key risks per vendor. Reference GCC-specific factors: Arabic support, local data residency, UAE/KSA regulatory compliance, and local partner ecosystem.`
+  },
+  boardreport: {
+    name: 'Board Report Generator',
+    sub: 'Executive-ready architecture summaries',
+    icon: '🏛️',
+    iconClass: 'icon-emerald',
+    badge: 'Pro',
+    badgeClass: 'badge-pro',
+    emptyTitle: 'Board Report Generator',
+    emptySub: 'Paste your architecture findings or roadmap and get a polished C-suite ready executive summary.',
+    placeholder: 'Paste your architecture findings, roadmap, or audit results…',
+    chips: ['Transform audit to exec summary','Create board presentation outline','DX programme status report','Architecture governance summary'],
+    templates: [
+      { emoji:'📊', text:'DX Programme Board Update', prompt:'Create a board-ready quarterly update for a UAE utility digital transformation programme. Include: progress vs milestones, budget status, key risks, decisions required from board, and next quarter priorities. Programme: Smart Grid Phase 1, 18 months in, AED 45M budget.' },
+      { emoji:'🔐', text:'Cybersecurity Risk Brief', prompt:'Create an executive brief for the board on OT/IT cybersecurity risk for a GCC energy company. Non-technical language. Cover: current risk posture, top 3 threats, investment required, and board-level decisions needed.' },
+      { emoji:'🗺️', text:'EA Strategy Summary', prompt:'Create a 1-page executive summary of an enterprise architecture strategy for a government entity undergoing digital transformation. Audience: Minister and Director Generals. Focus on business outcomes, not technical details.' },
+    ],
+    system: `You are an expert enterprise architect and management consultant specialising in executive communication for GCC C-suite and board audiences. Transform technical architecture content into clear, compelling board-level documents. Use business language (not technical jargon), focus on outcomes and decisions (not processes), quantify impact where possible (cost, risk, time), and structure for executive reading patterns (headline first, detail later). Always include: Executive Summary (3 sentences max), Key Points (5 bullets max), Decisions Required, and Next Steps. Maintain formal but clear GCC business communication style.`
+  }
+};
+
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let credits = 3;
+let currentAgent = null;
+let chatHistory = [];
+let messagesEl, emptyStateEl;
+
+// ══════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id + '-view').classList.add('active');
+}
+
+function goHome() { showView('home'); currentAgent = null; chatHistory = []; }
+
+function launchAgent(id) {
+  const a = agents[id];
+  if(!a) return;
+  currentAgent = id;
+  chatHistory = [];
+
+  // Update workspace nav
+  document.getElementById('ws-icon').textContent = a.icon;
+  document.getElementById('ws-icon').className = 'ws-icon ' + a.iconClass;
+  document.getElementById('ws-agent-name').textContent = a.name;
+  document.getElementById('ws-agent-sub').textContent = a.sub;
+  document.getElementById('ws-badge').textContent = a.badge;
+  document.getElementById('ws-badge').className = 'badge ' + a.badgeClass;
+
+  // Chat textarea placeholder
+  document.getElementById('chat-input').placeholder = a.placeholder;
+
+  // Empty state
+  document.getElementById('empty-icon').textContent = a.icon;
+  document.getElementById('empty-title').textContent = a.emptyTitle;
+  document.getElementById('empty-sub').textContent = a.emptySub;
+
+  // Prompt chips
+  const chipsEl = document.getElementById('prompt-chips');
+  chipsEl.innerHTML = '';
+  (a.chips || []).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'prompt-chip';
+    btn.textContent = c;
+    btn.onclick = () => { document.getElementById('chat-input').value = c; sendMsg(); };
+    chipsEl.appendChild(btn);
+  });
+
+  // Sidebar templates
+  const tmplEl = document.getElementById('sidebar-templates');
+  tmplEl.innerHTML = '';
+  (a.templates || []).forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'template-item';
+    div.innerHTML = `<span class="template-emoji">${t.emoji}</span><span class="template-text">${t.text}</span><span class="template-go">→</span>`;
+    div.onclick = () => {
+      document.getElementById('chat-input').value = t.prompt;
+      sendMsg();
+    };
+    tmplEl.appendChild(div);
+  });
+
+  // Reset messages
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = `<div class="empty-state" id="empty-state">
+    <div class="empty-icon" id="empty-icon">${a.icon}</div>
+    <div class="empty-title" id="empty-title">${a.emptyTitle}</div>
+    <div class="empty-sub" id="empty-sub">${a.emptySub}</div>
+    <div class="prompt-chips" id="prompt-chips"></div>
+  </div>`;
+
+  // Re-populate chips in new DOM
+  const newChips = document.getElementById('prompt-chips');
+  (a.chips || []).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'prompt-chip';
+    btn.textContent = c;
+    btn.onclick = () => { document.getElementById('chat-input').value = c; sendMsg(); };
+    newChips.appendChild(btn);
+  });
+
+  document.getElementById('credit-count').textContent = credits + ' free credit' + (credits !== 1 ? 's' : '');
+  showView('workspace');
+  document.getElementById('chat-input').focus();
+}
+
+// ══════════════════════════════════
+// MESSAGING
+// ══════════════════════════════════
+async function sendMsg() {
+  const inp = document.getElementById('chat-input');
+  const text = inp.value.trim();
+  if(!text || !currentAgent) return;
+
+  if(credits <= 0) {
+    showToast('No credits left — upgrade to Pro for unlimited access','warn'); return;
+  }
+
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  const msgs = document.getElementById('chat-messages');
+
+  // Remove empty state
+  const es = document.getElementById('empty-state');
+  if(es) es.remove();
+
+  // User message
+  appendMsg(msgs, 'user', text);
+
+  // Typing indicator
+  const tid = 'typing-' + Date.now();
+  msgs.innerHTML += `<div class="typing-row" id="${tid}">
+    <div class="msg-avatar ai">✦</div>
+    <div class="typing-bubble">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+  </div>`;
+  msgs.scrollTop = msgs.scrollHeight;
+
+  credits--;
+  document.getElementById('credit-count').textContent = credits + ' free credit' + (credits !== 1 ? 's' : '');
+
+  // Build history
+  chatHistory.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: agents[currentAgent].system,
+        messages: chatHistory.slice(-10)
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Unable to process. Please try again.';
+
+    document.getElementById(tid)?.remove();
+    chatHistory.push({ role: 'assistant', content: reply });
+    appendMsg(msgs, 'ai', reply);
+
+  } catch(e) {
+    document.getElementById(tid)?.remove();
+    appendMsg(msgs, 'ai', '⚠️ Connection error. Please check your internet connection and try again.', true);
+  }
+
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendMsg(container, role, text, isError) {
+  const initials = role === 'user' ? 'G' : '✦';
+  const avatarClass = role === 'user' ? 'user' : 'ai';
+
+  // Format AI text
+  const formatted = role === 'ai' ? text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^### (.+)$/gm, '<strong style="display:block;margin-top:12px;margin-bottom:3px;font-size:14px">$1</strong>')
+    .replace(/^## (.+)$/gm, '<strong style="display:block;margin-top:14px;margin-bottom:4px;font-size:14px;color:var(--text)">$1</strong>')
+    .replace(/^[-•] (.+)$/gm, '<span style="display:block;padding:2px 0 2px 14px;position:relative;"><span style="position:absolute;left:4px;color:var(--amber)">›</span>$1</span>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+    : text.replace(/\n/g, '<br>');
+
+  const html = `<div class="msg-row ${role}">
+    <div class="msg-avatar ${avatarClass}">${initials}</div>
+    <div class="msg-bubble${isError ? '" style="border-color:var(--rose);color:var(--rose)' : ''}">${formatted}</div>
+  </div>`;
+  container.innerHTML += html;
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ══════════════════════════════════
+// FILTERING
+// ══════════════════════════════════
+function filterAgents(cat, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const cards = document.querySelectorAll('.agent-card');
+  let count = 0;
+  cards.forEach(card => {
+    const cats = card.dataset.category || '';
+    const show = cat === 'all' || cats.includes(cat);
+    card.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  document.getElementById('agent-count').textContent = count + ' agent' + (count !== 1 ? 's' : '');
+}
+
+function filterChip(btn, filter) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  const cards = document.querySelectorAll('.agent-card');
+  let count = 0;
+  cards.forEach(card => {
+    const cats = card.dataset.category || '';
+    const tier = card.dataset.tier || '';
+    let show = filter === 'all' || cats.includes(filter) || tier === filter;
+    card.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  document.getElementById('agent-count').textContent = count + ' agent' + (count !== 1 ? 's' : '');
+}
+
+function searchAgents(query) {
+  const q = query.toLowerCase();
+  const cards = document.querySelectorAll('.agent-card');
+  let count = 0;
+  cards.forEach(card => {
+    const name = card.querySelector('.agent-name')?.textContent.toLowerCase() || '';
+    const desc = card.querySelector('.agent-desc')?.textContent.toLowerCase() || '';
+    const show = !q || name.includes(q) || desc.includes(q);
+    card.style.display = show ? '' : 'none';
+    if(show) count++;
+  });
+  document.getElementById('agent-count').textContent = count + ' agent' + (count !== 1 ? 's' : '');
+}
+
+// ══════════════════════════════════
+// CHAT UTILS
+// ══════════════════════════════════
+function clearChat() {
+  chatHistory = [];
+  const msgs = document.getElementById('chat-messages');
+  const a = agents[currentAgent];
+  msgs.innerHTML = `<div class="empty-state"><div class="empty-icon">${a.icon}</div><div class="empty-title">${a.emptyTitle}</div><div class="empty-sub">${a.emptySub}</div></div>`;
+  showToast('Conversation cleared','info');
+}
+
+function copyChat() {
+  const msgs = document.querySelectorAll('.msg-bubble');
+  if(!msgs.length) { showToast('Nothing to copy yet','info'); return; }
+  const text = Array.from(msgs).map(m => m.textContent).join('\n\n---\n\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard ✓','info'));
+}
+
+// ══════════════════════════════════
+// TOAST
+// ══════════════════════════════════
+function showToast(msg, type='info', dur=3500) {
+  const t = document.getElementById('toast');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if((e.metaKey||e.ctrlKey) && e.key==='k') {
+    e.preventDefault();
+    document.getElementById('search-input')?.focus();
+  }
+});
+</script>
+</body>
+</html>
